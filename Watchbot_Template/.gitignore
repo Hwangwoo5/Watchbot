@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.engine
+*.onnx
+media/voice_samples/*
+media/emotion_videos/*
+.DS_Store
+env/
+venv/
+*.log

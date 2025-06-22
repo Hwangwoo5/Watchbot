@@ -1,0 +1,9 @@
+torch
+opencv-python
+numpy
+pyaudio
+ffmpeg-python
+requests
+flask
+ultralytics
+tensorrt
