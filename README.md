@@ -1,50 +1,68 @@
-# 🛡️ WatchBot: 실시간 감정 인식 기반 보호자 알림 시스템
+# 🛡️ WatchBot: 감정 인식 기반 실시간 보호자 알림 시스템
 
 ## 🔍 프로젝트 개요
 
-**WatchBot**은 감정 인식, 음성 처리(STT/TTS), 실시간 영상 분석을 통해  
-사용자의 상태를 판단하고, 위험 상황에서 보호자에게 알림을 자동 전달하는  
-**AI 기반 스마트 감시 시스템**입니다.
+**WatchBot**은 실시간 감정 인식, 음성 인식(STT), TTS 응답, 객체 감지를 통해  
+사용자의 상태를 분석하고 상황에 따라 음성 안내 및 보호자에게 자동 알림을 제공하는  
+지능형 AI 모니터링 시스템입니다.
 
-> 주 사용자 대상: 독거노인, 치매 환자, 고위험 감정 상태자 등  
-> 실시간 반응형 시스템 + 하드웨어 인터페이스(스피커, 서보 모터 등)
+## 🎯 주요 기능 구성
 
-## 🧩 주요 기능
-
-| 기능 | 설명 |
+| 모듈 | 설명 |
 |------|------|
-| 얼굴 감정 인식 | YOLOv11 기반 표정 분석 (TensorRT 최적화) |
-| 음성 수신 및 인식 | Raspberry Pi에서 마이크로 입력받은 음성 → mp4 → A100 서버 전송 |
-| TTS 음성 응답 | 감정 상태/음성 입력에 대한 자연스러운 음성 응답 재생 |
-| RTSP 영상 스트리밍 | Pi에서 Jetson으로 실시간 영상 전송 (`libcamera-vid + ffmpeg`) |
-| 반응형 영상 출력 | 감정 분석 결과에 따라 지정된 `.mp4` 영상 자동 재생 |
-| 보호자 알림 시스템 | 위험 감정 (`angry`, `scared`, `sad`) 발생 시 보호자 알림 트리거 준비중 |
+| `emotion_detection/` | RTSP 영상 기반 얼굴 감정 인식 (YOLO/TensorRT 기반) |
+| `stt/` | 키워드 기반 웨이크워드 STT 감지 (`whisp.py`) |
+| `tts/` | DevDive TTS API + LLM 응답 생성 및 음성 재생 (`flow2.py`) |
+| `obj_detection/` | 객체 인식 ONNX 실행 스크립트 |
+| `models/` | 변환된 Keras 및 ONNX 모델 저장용 |
+| `haarcascade_files/` | 얼굴 인식 XML |
+| `emotion_videos/` | 감정별 반응 영상 저장 |
 
-## 🛠️ 시스템 구성
+## 🧠 모델 변환 방법
 
-- **Raspberry Pi 5**: 카메라, 마이크, 스피커, 서보 제어
-- **Jetson Xavier**: 감정 인식 모델 실행, STT/TTS 연동
-- **A100 서버**: 대규모 음성 처리 지원
+```bash
+# 모델 구조 정의 → .h5 저장
+python export_model.py
 
-## 📁 폴더 구조
-
-```
-WatchBot/
-├── hardware/               # 센서, 서보, 마이크 등 제어 코드
-├── software/               # 감정 분석, STT, TTS 등 AI 처리 파이프라인
-├── media/                  # 감정 반응 영상 및 예제 음성 파일
-├── models/                 # ONNX 및 TensorRT 모델
-├── requirements.txt        # Python 의존성 목록
-└── README.md               # 프로젝트 설명 파일
+# 결과:
+# - emotion_model.h5
+# - saved_model/
+# - emotion_model.onnx
 ```
 
-## 🙋 담당 역할
+TensorRT 변환은 Jetson 환경에서 아래처럼 진행합니다:
+```bash
+trtexec --onnx=emotion_model.onnx --saveEngine=emotion_model.engine --fp16
+```
 
-| 이름 | 담당 역할 |
-|------|-----------|
-| 오황우 | 전체 하드웨어 설계/연동, Raspberry Pi 모듈 구현, 프로젝트 통합 |
-| 공동개발자 | YOLOv11 기반 감정 모델 학습, TensorRT 최적화, STT/TTS 서버 연동 |
+## ▶️ 실행 방법 예시
 
-## 📜 라이선스
+```bash
+# 키워드 감지 및 대화 흐름 실행
+python software/stt/whisp.py
+python software/tts/flow2.py
 
-본 프로젝트는 MIT License를 따릅니다.
+# 감정 인식 실행
+python software/emotion_detection/detect_faces_trt.py
+```
+
+## 📁 폴더 구조 요약
+
+```
+Watchbot/
+├── models/                  # 모델 저장 (.h5, .onnx)
+├── haarcascade_files/       # 얼굴 검출 XML
+├── emotion_videos/          # 감정별 영상
+├── software/
+│   ├── emotion_detection/
+│   ├── stt/
+│   ├── tts/
+│   └── obj_detection/
+├── cnn.py
+├── export_model.py
+└── README.md
+```
+
+## 🙋 기여자
+
+- **오황우** – 프로젝트 구조 설계, 하드웨어 통합, 음성 인터페이스 구현

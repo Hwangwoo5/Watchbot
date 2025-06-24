@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.log
+
+# 모델
+*.engine
+models/
+
+# 환경
+.env
+watchbot_env/
+saved_model/
