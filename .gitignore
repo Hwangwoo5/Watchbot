@@ -5,7 +5,11 @@ __pycache__/
 
 # 모델
 *.engine
-models/
+
+# 예외 처리: 모델 디렉토리는 포함, 특정 확장자는 추적
+!models/
+!models/*.h5
+!models/*.onnx
 
 # 환경
 .env
